@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Escape Deck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jersey+10&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+  <canvas id="bg"></canvas>
+
+  <div id="app">
+    <section id="screen-title" class="screen">
+      <div class="title-wrap">
+        <h1 class="logo" id="logo"></h1>
+        <div class="subtitle">a co-op escape room &middot; 1&ndash;4 players</div>
+        <div class="panel menu">
+          <label for="name">Your toon name</label>
+          <div class="row">
+            <input id="name" maxlength="16" autocomplete="off">
+            <button class="btn small" id="reroll" title="Random name">Reroll</button>
+          </div>
+          <label>Level</label>
+          <div id="level-pick" class="level-pick"></div>
+          <div class="row btns">
+            <button class="btn orange" id="btn-solo">Play Solo</button>
+            <button class="btn red" id="btn-host">Host Room</button>
+          </div>
+          <div class="row">
+            <input id="code" placeholder="ROOM CODE" maxlength="5" autocomplete="off">
+            <button class="btn blue" id="btn-join">Join</button>
+          </div>
+          <div id="title-err" class="err"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-lobby" class="screen hidden">
+      <div class="lobby">
+        <div class="panel lobby-main">
+          <div class="lobby-head">
+            <div>
+              <div class="label">Room code</div>
+              <div id="room-code" class="room-code"></div>
+            </div>
+            <button id="copy-code" class="btn small blue">Copy</button>
+          </div>
+          <div id="lobby-level" class="lobby-level"></div>
+          <div id="lobby-players" class="player-cards"></div>
+          <div id="lobby-status" class="status"></div>
+          <div class="row btns">
+            <button id="btn-start" class="btn red big">Start</button>
+            <button id="btn-leave" class="btn small">Leave</button>
+          </div>
+        </div>
+        <div class="chat-slot" id="lobby-chat"></div>
+      </div>
+    </section>
+
+    <section id="screen-game" class="screen hidden">
+      <div class="game">
+        <header class="panel hud">
+          <div class="hud-level">
+            <div class="hud-title" id="hud-title"></div>
+            <div class="hud-sub" id="hud-sub"></div>
+          </div>
+          <div class="hud-stat"><div class="label">Time</div><div class="val" id="hud-time">0:00</div></div>
+          <nav id="scene-tabs" class="scene-tabs"></nav>
+          <div id="hud-players" class="hud-players"></div>
+          <div class="hud-btns">
+            <button class="btn orange" id="btn-hint">Hint</button>
+            <button class="btn small" id="btn-mute">Sound</button>
+            <button class="btn small" id="btn-quit">Quit</button>
+          </div>
+        </header>
+        <main class="stage-wrap" id="stage-wrap">
+          <div class="stage" id="stage">
+            <canvas id="scene" width="480" height="270"></canvas>
+            <div id="tooltip" class="tooltip"></div>
+          </div>
+        </main>
+        <div class="chat-slot" id="game-chat"></div>
+        <footer class="hand-wrap">
+          <div class="hand-label">Inventory <span id="hand-tip"></span></div>
+          <div id="hand" class="hand"></div>
+        </footer>
+      </div>
+    </section>
+  </div>
+
+  <div id="chat" class="panel chat">
+    <div class="chat-title">Chat</div>
+    <div id="chat-log" class="chat-log"></div>
+    <form id="chat-form" class="chat-form">
+      <input id="chat-input" maxlength="240" placeholder="Bounce an idea..." autocomplete="off">
+      <button class="btn small blue">Send</button>
+    </form>
+  </div>
+
+  <div id="modal" class="modal hidden"><div class="modal-card panel"></div></div>
+  <div id="toasts" class="toasts"></div>
+  <div class="crt"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
