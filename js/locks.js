@@ -9,9 +9,11 @@ export const COLORS = {
   green: '#4bc292', purple: '#a46cf0', orange: '#ff9a00',
 };
 
+// `keyboard` (an inputmode) lets phone players type the answer: tapping an
+// element marked .type-here brings up the on-screen keyboard.
 export const LOCK_TYPES = {
-  digits: { input: 'wheels', symbols: [...'0123456789'], sep: '' },
-  letters: { input: 'wheels', symbols: [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'], sep: '' },
+  digits: { input: 'wheels', symbols: [...'0123456789'], sep: '', keyboard: 'numeric' },
+  letters: { input: 'wheels', symbols: [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'], sep: '', keyboard: 'text' },
   colors: { input: 'palette', symbols: Object.keys(COLORS), sep: ' ' },
 };
 
@@ -32,7 +34,7 @@ const INPUTS = {
     });
     const step = (i, d) => { vals[i] = (vals[i] + d + n) % n; cur = i; render(); sfx('click'); };
     const wrap = el('div', { class: 'wheels' }, vals.map((_, i) => {
-      const box = el('div', { class: 'wheel-val', onclick: () => { cur = i; render(); } });
+      const box = el('div', { class: 'wheel-val type-here', onclick: () => { cur = i; render(); } });
       boxes.push(box);
       return el('div', { class: 'wheel' },
         el('button', { class: 'btn tiny', onclick: () => step(i, 1) }, '▲'),
@@ -71,7 +73,7 @@ const INPUTS = {
     render();
     return {
       el: el('div', { class: 'palette-lock' }, slots, palette,
-        el('div', { class: 'hint-line' }, 'Click a slot to remove it')),
+        el('div', { class: 'hint-line' }, 'Tap a slot to remove it')),
       value: () => (vals.length === lock.length ? vals.slice() : null),
       key(e) {
         const i = Number(e.key) - 1;
@@ -83,7 +85,29 @@ const INPUTS = {
   },
 };
 
+// Phone keyboards often send no usable keydown, so read what lands in a hidden
+// field instead. It always holds one space, so a backspace is still noticed.
+function withKeyboard(input, mode) {
+  const keys = el('input', {
+    class: 'lock-keys', inputmode: mode, enterkeyhint: 'go', autocomplete: 'off',
+    autocorrect: 'off', autocapitalize: 'characters', spellcheck: 'false', 'aria-label': 'Type the code',
+  });
+  const reset = () => { keys.value = ' '; };
+  keys.addEventListener('input', () => {
+    if (!keys.value) input.key({ key: 'Backspace' });
+    else for (const ch of keys.value.slice(1)) input.key({ key: ch });
+    reset();
+  });
+  reset();
+  const wrap = el('div', {
+    class: 'lock-wrap',
+    onclick: e => { if (e.target.closest('.type-here')) keys.focus({ preventScroll: true }); },
+  }, input.el, keys);
+  return { ...input, el: wrap };
+}
+
 export function buildLock(lock) {
   const type = LOCK_TYPES[lock.type];
-  return INPUTS[type.input](type, lock);
+  const input = INPUTS[type.input](type, lock);
+  return type.keyboard ? withKeyboard(input, type.keyboard) : input;
 }

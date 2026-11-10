@@ -166,9 +166,11 @@ function sendCursor(p) {
 
 function fitStage() {
   const wrap = $('#stage-wrap'), stage = $('#stage');
+  // Stacked (phone portrait) layouts give the stage the full width and let the
+  // page scroll; the others fit it inside its grid cell.
+  const stacked = getComputedStyle($('.game')).getPropertyValue('--stacked').trim() === '1';
   const k = Math.min(wrap.clientWidth / W, wrap.clientHeight / H);
-  const narrow = innerWidth <= 860;
-  const w = narrow ? wrap.clientWidth : Math.floor(W * k);
+  const w = stacked ? wrap.clientWidth : Math.floor(W * k);
   stage.style.width = w + 'px';
   stage.style.height = Math.floor((w * H) / W) + 'px';
 }

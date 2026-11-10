@@ -6,6 +6,7 @@ import { circle, rect, star, text, poly, OUT, TAU } from './draw.js';
 import { COLORS } from './locks.js';
 
 export const W = 480, H = 270;
+const TOUCH_SLOP = 10;
 const rand = (a, b) => a + Math.random() * (b - a);
 const CONFETTI = Object.values(COLORS);
 
@@ -63,10 +64,11 @@ export class SceneView {
     this.cursors = new Map();
     this.mouse = null;
     this.hover = null;
+    canvas.addEventListener('pointerdown', e => { this.touch = e.pointerType !== 'mouse'; });
     canvas.addEventListener('pointermove', e => { this.mouse = this.toLocal(e); onMove?.(this.mouse); });
     canvas.addEventListener('pointerleave', () => { this.mouse = null; });
     canvas.addEventListener('click', e => {
-      const h = this.hit(this.toLocal(e));
+      const h = this.hit(this.toLocal(e), this.touch ? TOUCH_SLOP : 0);
       if (h) onClick(h);
     });
   }
@@ -85,14 +87,18 @@ export class SceneView {
 
   hotspots() { return this.def.hotspots.filter(h => isVisible(h, this.state)); }
 
-  hit(p) {
+  // A direct hit wins (topmost first); otherwise the nearest hotspot within
+  // `slop` scene pixels, so fingers don't have to be pixel-perfect.
+  hit(p, slop = 0) {
     if (!p || !this.def) return null;
-    const hs = this.hotspots();
-    for (let i = hs.length - 1; i >= 0; i--) {
-      const [x, y, w, h] = hs[i].rect;
-      if (p.x >= x && p.x < x + w && p.y >= y && p.y < y + h) return hs[i];
+    let best = null, bestD = slop;
+    for (const h of this.hotspots().reverse()) {
+      const [x, y, w, hh] = h.rect;
+      const d = Math.hypot(Math.max(x - p.x, 0, p.x - (x + w)), Math.max(y - p.y, 0, p.y - (y + hh)));
+      if (d === 0) return h;
+      if (d <= bestD) { best = h; bestD = d; }
     }
-    return null;
+    return best;
   }
 
   fx(name, at) {

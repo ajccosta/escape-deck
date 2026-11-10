@@ -49,7 +49,7 @@ $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeM
 addEventListener('keydown', e => {
   if (!modalState) return;
   if (e.key === 'Escape') return closeModal();
-  if (document.activeElement?.tagName === 'INPUT') return;
+  if (document.activeElement?.tagName === 'INPUT' && !document.activeElement.classList.contains('lock-keys')) return;
   if (modalState.onKey?.(e)) e.preventDefault();
 });
 
@@ -129,7 +129,8 @@ export function renderHand(s, L, selected, onSelect) {
   if (key === handKey) return;
   handKey = key;
   const n = s.inventory.length;
-  $('#hand-tip').textContent = selected ? `Holding ${L.items[selected].name}: click something in the scene to use it` : n ? 'Click a card to hold it' : '';
+  $('#hand-tip').textContent = selected ? `Holding ${L.items[selected].name}: tap something in the scene to use it` : n ? 'Tap a card to hold it' : '';
+  $('#hand-desc').textContent = selected ? L.items[selected].desc : '';
   if (!n) return $('#hand').replaceChildren(el('div', { class: 'hand-empty' }, 'Nothing yet. Go find something!'));
   $('#hand').replaceChildren(...s.inventory.map((id, i) => {
     const it = L.items[id];
