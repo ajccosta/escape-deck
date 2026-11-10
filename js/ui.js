@@ -177,11 +177,11 @@ export function renderLobby(s, L, { me, code, isHost }) {
     if (!p) return el('div', { class: 'pcard empty' }, 'Waiting...');
     return el('div', { class: 'pcard', style: `--c:${p.color};--d:${i * -0.6}s` },
       el('div', { class: 'suit' }), el('b', {}, p.name),
-      el('small', {}, (id === s.host ? 'Host' : 'Toon') + (id === me ? ' · you' : '')));
+      el('small', {}, (id === s.host ? 'Host' : 'Player') + (id === me ? ' · you' : '')));
   }));
   $('#btn-start').classList.toggle('hidden', !isHost);
   $('#lobby-status').textContent = isHost
-    ? `${ps.length}/${MAX_PLAYERS} toons. Share the code, or start whenever you're ready.`
+    ? `${ps.length}/${MAX_PLAYERS} players. Send the invite link, or start whenever you're ready.`
     : 'Waiting for the host to start...';
 }
 

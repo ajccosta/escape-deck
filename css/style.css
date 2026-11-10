@@ -124,7 +124,8 @@ label, .label { color: var(--ink-dim); font-size: 15px; text-transform: uppercas
 #screen-lobby { display: grid; place-items: center; padding: 16px; overflow: auto; }
 .lobby { display: grid; grid-template-columns: minmax(0, 560px) 320px; gap: 16px; width: min(920px, 100%); height: min(560px, 100%); }
 .lobby-main { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-.lobby-head { display: flex; justify-content: space-between; align-items: center; }
+.lobby-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.copy-btns { display: flex; flex-direction: column; gap: 6px; }
 .room-code { font-size: 48px; letter-spacing: 8px; color: var(--gold); text-shadow: 0 4px 0 var(--out); }
 .lobby-level { background: var(--panel-2); border-radius: 10px; padding: 10px 14px; font-size: 16px; color: var(--ink-dim); }
 .lobby-level b { color: #fff; font-size: 20px; }

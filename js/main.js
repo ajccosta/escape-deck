@@ -289,6 +289,14 @@ ui.setLogo('ESCAPE DECK');
 renderPick();
 ui.show('title');
 
+const invited = new URLSearchParams(location.search).get('room');
+if (invited) {
+  // Drop the code from the address bar so leaving the room doesn't rejoin it.
+  history.replaceState(null, '', location.pathname);
+  $('#code').value = invited.toUpperCase();
+  joinRoom();
+}
+
 $('#reroll').onclick = () => { $('#name').value = toonName(); sfx('click'); };
 $('#btn-solo').onclick = () => { sfx('click'); playSolo(); };
 $('#btn-host').onclick = () => { sfx('click'); hostRoom(); };
@@ -296,7 +304,13 @@ $('#btn-join').onclick = () => { sfx('click'); joinRoom(); };
 $('#code').addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom(); });
 $('#btn-start').onclick = () => { sfx('good'); dispatch({ type: 'start' }); };
 $('#btn-leave').onclick = toTitle;
-$('#copy-code').onclick = () => { navigator.clipboard?.writeText(app.code); ui.toast('Room code copied!'); };
+// An invite link is the page URL with ?room=CODE; opening it joins straight away.
+const inviteLink = () => `${location.origin}${location.pathname}?room=${app.code}`;
+const copy = (text, what) => navigator.clipboard?.writeText(text)
+  .then(() => ui.toast(`${what} copied!`), () => prompt(`Copy the ${what.toLowerCase()}:`, text))
+  ?? prompt(`Copy the ${what.toLowerCase()}:`, text);
+$('#copy-link').onclick = () => copy(inviteLink(), 'Invite link');
+$('#copy-code').onclick = () => copy(app.code, 'Room code');
 $('#btn-hint').onclick = () => { sfx('click'); dispatch({ type: 'hint' }); };
 $('#btn-quit').onclick = () => { if (confirm('Leave this game?')) toTitle(); };
 const muteBtn = $('#btn-mute');
