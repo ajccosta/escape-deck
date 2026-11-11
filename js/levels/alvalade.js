@@ -12,6 +12,8 @@
 
 import { rect, rrect, circle, ellipse, poly, line, star, text, puffs, dropShadow, OUT } from '../draw.js';
 import { COLORS } from '../locks.js';
+import { head } from './people.js';
+import { val } from '../engine.js';
 
 const W = 480;
 const f = name => s => !!s.flags[name];
@@ -21,18 +23,6 @@ const AZUL = '#2456a6';
 const TILE_BG = '#f7f4ec';
 
 // ---------------------------------------------------------------- shared art
-
-function head(g, x, y, { skin = '#f1c9a5', hair = '#3b2a20', bun = false, glasses = false, moustache = false, cap = null } = {}) {
-  if (bun) circle(g, x, y - 11, 5, hair);
-  circle(g, x, y, 9, skin);
-  g.beginPath(); g.arc(x, y - 1, 9, Math.PI * 1.05, Math.PI * 1.95); g.closePath();
-  g.fillStyle = hair; g.fill(); g.strokeStyle = OUT; g.lineWidth = 1.5; g.stroke();
-  if (cap) { rrect(g, x - 9, y - 10, 18, 6, 2, cap, { line: 1.5 }); rect(g, x - 2, y - 6, 13, 3, cap, { line: 1 }); }
-  for (const dx of [-3.5, 3.5]) circle(g, x + dx, y + 1, 1.2, OUT, { line: 0 });
-  if (glasses) for (const dx of [-3.5, 3.5]) circle(g, x + dx, y + 1, 2.8, null, { line: 1 });
-  if (moustache) ellipse(g, x, y + 5, 5, 1.8, hair, { line: 1 });
-  else { g.beginPath(); g.arc(x, y + 3.5, 2.5, 0.2 * Math.PI, 0.8 * Math.PI); g.strokeStyle = OUT; g.lineWidth = 1.2; g.stroke(); }
-}
 
 function nataArt(g, x, y, s = 1) {
   poly(g, [x - 9 * s, y - 2 * s, x + 9 * s, y - 2 * s, x + 7 * s, y + 5 * s, x - 7 * s, y + 5 * s], '#d58b3a', { line: 1.5 });
@@ -200,7 +190,8 @@ const PAST_HOTSPOTS = [
       poly(g, [152, 160, 156, 152, 176, 152, 173, 160], '#fff6d8', { line: 1.2 });
       line(g, [158, 155, 171, 155], AZUL, 1);
     },
-    inspect: '"Querido cliente! You were sleeping like an angel, I didn\'t have the heart to wake you. I\'m at the arraial! The spare key is in the cookie tin. Its code is the number on the azulejo that has no twin. Take a pastel de nata and a papo-seco for the road. The last metro leaves at 1! Beijinhos, Graça"',
+    inspect: { easy: '"Querido cliente! You were sleeping like an angel, I didn\'t have the heart to wake you. I\'m at the arraial! The spare key is in the cookie tin. Its code is the number on the azulejo that has no twin. Take a pastel de nata and a papo-seco for the road. The last metro leaves at 1! Beijinhos, Graça"',
+      hard: '"Querido cliente! You were sleeping like an angel. I\'m at the arraial! Spare key in the tin, the code is on the odd tile out. Help yourself to something for the road. Beijinhos, Graça"' },
   },
   {
     id: 'bread', name: 'Bread Basket', rect: [244, 126, 44, 22],
@@ -347,7 +338,8 @@ const ARR_HOTSPOTS = [
     uses: { nata: { when: not('lurdesAsked'), take: 'nata', set: 'lurdesAsked', say: '"Ai, que bom! Thank you, filho. Here, let me give you something for the metro... if I can open my purse. My late husband set the lock to the word my manjericos whisper."', sfx: 'good' } },
     lock: {
       type: 'letters', length: 4, answer: 'FADO', when: f('lurdesAsked'),
-      prompt: 'Dona Lurdes holds out a little purse with a four-letter lock. "It\'s the word my four manjericos whisper. Each verse has one word shouted in capitals. Take their first letters, left to right!"',
+      prompt: { easy: 'Dona Lurdes holds out a little purse with a four-letter lock. "It\'s the word my four manjericos whisper. Each verse has one word shouted in capitals. Take their first letters, left to right!"',
+        hard: 'Dona Lurdes holds out a little purse with a four-letter lock.' },
       onSolve: { set: 'coinGot', give: 'coin', say: 'Click! Dona Lurdes tosses down a €2 coin wrapped in a napkin. "Para o metro! Don\'t tell your mother I\'m spoiling you."', fx: 'sparkle' },
     },
   },
@@ -512,7 +504,7 @@ const METRO_HOTSPOTS = [
       rrect(g, 210, 100, 52, 12, 3, '#1f3a5f');
       text(g, 'CAIS ▶', 236, 106, { size: 6, color: '#fff' });
     },
-    inspect: s => (s.flags.gateOpen ? 'The gate is open. GO!' : 'The ticket gates. Beyond them, the escalator down to the platform. You need a charged Navegante card to get through.'),
+    inspect: s => (s.flags.gateOpen ? 'The gate is open. GO!' : 'The ticket gates. Beyond them, the escalator down to the platform.' + val({ easy: ' You need a charged Navegante card to get through.', hard: '' }, s)),
     uses: { trip: { take: 'trip', set: 'gateOpen', win: true, say: 'Bip! The gate swings open. You race down the escalator and leap onto the last metro as the doors close. Adeus, Alvalade! You escaped!', fx: 'confetti', sfx: 'win' } },
   },
   {

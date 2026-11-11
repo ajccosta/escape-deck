@@ -2,7 +2,7 @@
 
 import { $, el, jiggle, fmtTime } from './dom.js';
 import { buildLock } from './locks.js';
-import { MAX_PLAYERS, sceneOpen } from './engine.js';
+import { MAX_PLAYERS, sceneOpen, val, mode } from './engine.js';
 import { sfx } from './sfx.js';
 
 // ---- screens
@@ -129,8 +129,9 @@ export function renderHand(s, L, selected, onSelect) {
   if (key === handKey) return;
   handKey = key;
   const n = s.inventory.length;
-  $('#hand-tip').textContent = selected ? `Holding ${L.items[selected].name}: tap something in the scene to use it` : n ? 'Tap a card to hold it' : '';
-  $('#hand-desc').textContent = selected ? L.items[selected].desc : '';
+  const tips = mode(s).nudges;
+  $('#hand-tip').textContent = selected ? `Holding ${L.items[selected].name}` + (tips ? ': tap something in the scene to use it' : '') : n && tips ? 'Tap a card to hold it' : '';
+  $('#hand-desc').textContent = selected ? val(L.items[selected].desc, s) : '';
   if (!n) return $('#hand').replaceChildren(el('div', { class: 'hand-empty' }, 'Nothing yet. Go find something!'));
   $('#hand').replaceChildren(...s.inventory.map((id, i) => {
     const it = L.items[id];
@@ -148,7 +149,7 @@ export function renderHand(s, L, selected, onSelect) {
         inner.style.setProperty('--rx', `${-((e.clientY - r.top) / r.height - 0.5) * 30}deg`);
       },
       onmouseleave: () => { inner.style.removeProperty('--rx'); inner.style.removeProperty('--ry'); },
-    }, inner, el('div', { class: 'card-desc panel' }, el('div', { class: 'desc-title' }, it.name), el('div', { class: 'desc-body' }, it.desc)));
+    }, inner, el('div', { class: 'card-desc panel' }, el('div', { class: 'desc-title' }, it.name), el('div', { class: 'desc-body' }, val(it.desc, s))));
     return card;
   }));
 }
@@ -157,20 +158,31 @@ export const resetHand = () => { handKey = ''; };
 // ---- HUD
 export function renderHUD(s, L, me, sceneId, onGo) {
   $('#hud-title').textContent = L.title;
-  $('#hud-sub').textContent = L.subtitle;
+  $('#hud-sub').textContent = `${L.subtitle} · ${mode(s).label}`;
+  $('#btn-hint').classList.toggle('hidden', !mode(s).hints);
   $('#scene-tabs').replaceChildren(...Object.entries(L.scenes)
     .filter(([id]) => sceneOpen(L, id, s))
     .map(([id, sc]) => btn(sc.name, 'small' + (id === sceneId ? ' on' : ''), () => onGo(id))));
+  const tabs = $('#scene-tabs');
+  tabs.classList.toggle('more', tabs.scrollWidth > tabs.clientWidth);
+  tabs.querySelector('.on')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   $('#hud-players').replaceChildren(...Object.entries(s.players).map(([id, p]) =>
     el('span', { class: 'chip', style: `--c:${p.color}` }, p.name + (id === me ? ' (you)' : ''), ' ',
       el('small', {}, '@ ' + L.scenes[p.scene].name))));
 }
+// A mouse wheel scrolls the room tabs sideways when they overflow.
+$('#scene-tabs').addEventListener('wheel', e => {
+  const tabs = e.currentTarget;
+  if (tabs.scrollWidth <= tabs.clientWidth || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+  tabs.scrollLeft += e.deltaY;
+  e.preventDefault();
+}, { passive: false });
 export const setTime = ms => { $('#hud-time').textContent = fmtTime(ms); };
 
 // ---- lobby
 export function renderLobby(s, L, { me, code, isHost }) {
   $('#room-code').textContent = code;
-  $('#lobby-level').replaceChildren(el('b', {}, `${L.title}: ${L.subtitle}`), el('br'), L.blurb);
+  $('#lobby-level').replaceChildren(el('b', {}, `${L.title}: ${L.subtitle}`), ` (${mode(s).label})`, el('br'), L.blurb);
   const ps = Object.entries(s.players);
   $('#lobby-players').replaceChildren(...Array.from({ length: MAX_PLAYERS }, (_, i) => {
     const [id, p] = ps[i] || [];
@@ -191,6 +203,12 @@ export function renderLevelPick(levels, selected, onPick) {
     class: 'level-card' + (L.id === selected ? ' sel' : ''), onclick: () => onPick(L.id),
   }, el('b', {}, L.title), el('span', {}, L.subtitle),
   el('div', { class: 'swatches' }, L.palette.map(c => el('i', { style: `background:${c}` }))))));
+}
+
+export function renderModePick(modes, selected, onPick) {
+  $('#mode-pick').replaceChildren(...Object.entries(modes).map(([id, m]) => el('button', {
+    class: 'level-card mode-card' + (id === selected ? ' sel' : ''), onclick: () => onPick(id),
+  }, el('b', {}, m.label), el('span', {}, m.blurb))));
 }
 
 export function setLogo(text) {

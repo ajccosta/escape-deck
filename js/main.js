@@ -2,7 +2,7 @@
 
 import { $ } from './dom.js';
 import { LEVELS } from './levels/index.js';
-import { getLevel, createState, reduce, activeLock, ok, val, sceneOpen, hotspot, MAX_PLAYERS } from './engine.js';
+import { getLevel, createState, reduce, activeLock, ok, val, sceneOpen, hotspot, MAX_PLAYERS, MODES, mode } from './engine.js';
 import { Net } from './net.js';
 import { SceneView, W, H } from './scene.js';
 import { startBackground } from './bg.js';
@@ -18,7 +18,7 @@ const toonName = () => `${pick(FIRST)} ${pick(LAST)}`.slice(0, 16);
 
 const app = {
   net: null, me: null, isHost: false, code: '',
-  state: null, L: null, levelId: Object.keys(LEVELS)[0],
+  state: null, L: null, levelId: Object.keys(LEVELS)[0], modeId: 'easy',
   scene: null, selected: null, lockOpen: null, clockOffset: 0, shownWin: false, chatLen: 0,
 };
 
@@ -131,7 +131,7 @@ function clickHotspot(h) {
     const item = app.selected;
     select(null);
     if (ok(h.uses?.[item], s)) dispatch({ type: 'use', item, hotspot: h.id });
-    else { ui.toast(`The ${L.items[item].name} doesn't do anything there.`); sfx('bad'); }
+    else { ui.toast(mode(s).nudges ? `The ${L.items[item].name} doesn't do anything there.` : 'Nothing happens.'); sfx('bad'); }
     return;
   }
   const lock = activeLock(h, s);
@@ -230,7 +230,7 @@ function newRun(me) {
   app.isHost = true;
   app.shownWin = false;
   app.chatLen = 0;
-  app.state = createState(app.levelId, me);
+  app.state = createState(app.levelId, me, app.modeId);
   app.L = getLevel(app.levelId);
   ui.resetChat();
 }
@@ -280,7 +280,10 @@ function toTitle() {
   bg.palette(MENU_PALETTE);
 }
 
-function renderPick() { ui.renderLevelPick(Object.values(LEVELS), app.levelId, id => { app.levelId = id; sfx('click'); renderPick(); }); }
+function renderPick() {
+  ui.renderLevelPick(Object.values(LEVELS), app.levelId, id => { app.levelId = id; sfx('click'); renderPick(); });
+  ui.renderModePick(MODES, app.modeId, id => { app.modeId = id; sfx('click'); renderPick(); });
+}
 
 let saved = '';
 try { saved = localStorage.getItem('ed-name') || ''; } catch {}

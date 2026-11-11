@@ -12,6 +12,7 @@
 
 import { rect, rrect, circle, ellipse, poly, line, star, text, puffs, dropShadow, OUT } from '../draw.js';
 import { COLORS } from '../locks.js';
+import { val } from '../engine.js';
 
 const W = 480;
 const f = name => s => !!s.flags[name];
@@ -194,7 +195,8 @@ const HQ_HOTSPOTS = [
       line(g, [63, 133, 79, 133], '#8a7a40', 1);
       line(g, [62, 136, 76, 136], '#8a7a40', 1);
     },
-    inspect: 'A note in Flippy\'s handwriting: "Spare HQ key is in the desk drawer. The combo is the total LAFF of every SMILING toon on the wall. Don\'t tell the Cogs! — F"',
+    inspect: { easy: 'A note in Flippy\'s handwriting: "Spare HQ key is in the desk drawer. The combo is the total LAFF of every SMILING toon on the wall. Don\'t tell the Cogs! — F"',
+      hard: 'A note in Flippy\'s handwriting: "Drawer: add up the smiles. — F"' },
   },
   {
     id: 'drawer', name: 'Desk Drawer', rect: [100, 154, 66, 32],
@@ -322,7 +324,7 @@ const PG_HOTSPOTS = [
       line(g, [x + 9, y - 7, x + 3, y - 5]);
       line(g, [x - 4, y + 6, x + 4, y + 6]);
     },
-    inspect: 'A Cog. A Flunky, judging by the tiny suit. "Nobody rides the trolley. Company policy." It won\'t budge. Cogs really can\'t stand a bit of slapstick...',
+    inspect: s => 'A Cog. A Flunky, judging by the tiny suit. "Nobody rides the trolley. Company policy." It won\'t budge.' + val({ easy: ' Cogs really can\'t stand a bit of slapstick...', hard: '' }, s),
     uses: { pie: { take: 'pie', give: 'memo', set: 'cogGone', say: 'SPLAT! The Cog sputters, sparks... and explodes into a shower of gears! It dropped a memo.', fx: 'explode', sfx: 'boom' } },
   },
   {
@@ -343,7 +345,7 @@ const PG_HOTSPOTS = [
         }
     },
     inspect: s => (s.flags.fountainOn
-      ? 'The fountain sprays water that keeps changing colour, over and over, with a little rest in between. Watch it closely.'
+      ? val({ easy: 'The fountain sprays water that keeps changing colour, over and over, with a little rest in between. Watch it closely.', hard: 'The fountain sprays coloured water.' }, s)
       : 'The fountain is bone dry. A brass plaque reads: "TOSS IN A JELLYBEAN, MAKE A WISH."'),
     uses: { jellybean: { when: not('fountainOn'), take: 'jellybean', set: 'fountainOn', say: 'Plink! The jellybean sinks... and the fountain gurgles to life, spraying coloured water!', fx: 'splash', sfx: 'splash' } },
   },
@@ -458,7 +460,8 @@ const GS_HOTSPOTS = [
       line(g, [312, 135, 329, 135], '#a46cf0', 1);
       line(g, [311, 138, 325, 138], '#a46cf0', 1);
     },
-    inspect: 'A note on the counter: "Gone to lunch! The pie case combination is how many SELTZER BOTTLES, then BANANA PEELS, then ANVILS are in this shop. Count EVERYTHING! — Clarabelle"',
+    inspect: { easy: 'A note on the counter: "Gone to lunch! The pie case combination is how many SELTZER BOTTLES, then BANANA PEELS, then ANVILS are in this shop. Count EVERYTHING! — Clarabelle"',
+      hard: 'A note on the counter: "Gone to lunch! Seltzer, banana, anvil. — Clarabelle"' },
   },
   {
     id: 'piecase', name: 'Pie Case', rect: [346, 96, 64, 46],

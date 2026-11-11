@@ -9,7 +9,19 @@ export const MAX_PLAYERS = 4;
 export const PLAYER_COLORS = ['#fe5f55', '#009dff', '#ff9a00', '#4bc292'];
 const CHAT_MAX = 150;
 
-export const val = (v, s) => (typeof v === 'function' ? v(s) : v);
+// Difficulty: one entry per mode. `hints` allows the Hint button; `nudges`
+// keeps the UI's how-to tips. Any level text (inspect, say, prompt, intro, item
+// desc...) may be { easy, hard } instead of a string, to say less in hard mode.
+export const MODES = {
+  easy: { label: 'Easy', blurb: 'Hints, and people tell you what they need.', hints: true, nudges: true },
+  hard: { label: 'Hard', blurb: 'No hints. Nobody spells it out.', hints: false, nudges: false },
+};
+export const mode = s => MODES[s.mode] || MODES.easy;
+
+export const val = (v, s) => {
+  if (typeof v === 'function') v = v(s);
+  return v && typeof v === 'object' && 'easy' in v ? (v[s.mode] ?? v.easy) : v;
+};
 export const ok = (o, s) => !!o && (!o.when || o.when(s));
 const list = v => [].concat(v);
 
@@ -29,9 +41,9 @@ export const sceneOpen = (L, id, s) => !!L.scenes[id] && (!L.scenes[id].open || 
 export const isSolved = (h, s) => !!s.flags['solved:' + h.id];
 export const activeLock = (h, s) => (h.lock && !isSolved(h, s) && ok(h.lock, s) ? h.lock : null);
 
-export function createState(levelId, hostId) {
+export function createState(levelId, hostId, modeId = 'easy') {
   return {
-    levelId, host: hostId, phase: 'lobby', players: {}, chat: [],
+    levelId, mode: modeId, host: hostId, phase: 'lobby', players: {}, chat: [],
     ...freshRun(getLevel(levelId)),
   };
 }
@@ -55,7 +67,8 @@ function post(s, msg) {
 
 function applyEffect(s, eff, ev, at) {
   for (const k in EFFECTS) if (k in eff) EFFECTS[k](s, eff[k]);
-  if (eff.say) { post(s, { kind: 'sys', text: eff.say }); ev.push({ kind: 'toast', text: eff.say }); }
+  const say = val(eff.say, s);
+  if (say) { post(s, { kind: 'sys', text: say }); ev.push({ kind: 'toast', text: say }); }
   if (eff.fx) ev.push({ kind: 'fx', fx: eff.fx, at: eff.at || at });
   ev.push({ kind: 'sfx', name: eff.sfx || (eff.give ? 'pick' : 'good') });
 }
@@ -81,13 +94,13 @@ const ACTIONS = {
     if (a.by !== s.host || s.phase !== 'lobby') return;
     s.phase = 'play';
     s.startedAt = Date.now();
-    post(s, { kind: 'sys', text: L.intro });
+    post(s, { kind: 'sys', text: val(L.intro, s) });
   },
   restart(s, a, L) {
     if (a.by !== s.host) return;
     Object.assign(s, freshRun(L), { startedAt: Date.now() });
     for (const p of Object.values(s.players)) p.scene = L.start;
-    post(s, { kind: 'sys', text: 'New run! ' + L.intro });
+    post(s, { kind: 'sys', text: 'New run! ' + val(L.intro, s) });
   },
   move(s, a, L) {
     if (who(s, a) && sceneOpen(L, a.scene, s)) s.players[a.by].scene = a.scene;
@@ -125,7 +138,7 @@ const ACTIONS = {
   },
   hint(s, a, L) {
     const p = who(s, a), i = L.hints.findIndex(h => !h.done(s));
-    if (!p || i < 0) return;
+    if (!p || i < 0 || !mode(s).hints) return;
     const tier = s.hintTier[i] || 0, tiers = L.hints[i].text;
     s.hintTier[i] = tier + 1;
     s.hintsUsed++;
